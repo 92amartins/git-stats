@@ -1,7 +1,7 @@
 library(readtext)
 library(tidytext)
 library(tidyverse)
-library(emoGG)
+library(ggthemes)
 
 commits <- readtext("data/stewie_commits.txt")
 emojis <- read.csv("data/emojis.csv", stringsAsFactors = FALSE)
@@ -14,16 +14,19 @@ tidy_commits <- commits %>%
 
 emoji_counts <- tidy_commits %>%
   inner_join(emojis, by = c("word" = "name")) %>%
-  count(emoji, sort = TRUE) %>%
-  mutate(percent = round(n / sum(n), 3))
+  count(word, sort = TRUE) %>%
+  mutate(percent = paste0(round((n / sum(n)) * 100, 2), "%"))
 
-emoji_counts
-  
 emoji_counts %>%
-  mutate(emoji = reorder(emoji, n)) %>%
+  mutate(word = reorder(word, n)) %>%
   ggplot() +
-  geom_text(aes(emoji,n, label = n)) +
-  geom_text(aes(emoji,n, label = emoji), nudge_y = 2) +
-  theme(axis.title=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank())
+  geom_text(aes(word,n, label = percent)) +
+  geom_text(aes(word,n, label = word), nudge_y = 5) +
+  labs(x="Emoji", y="# commits",
+       title = "Distribuição de commits no Stewie",
+       subtitle = "Carga de bugs de 23%",
+       caption="Fonte: Cucaracha Holdings") +
+  ggthemes::theme_economist() +
+  theme(axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank())
